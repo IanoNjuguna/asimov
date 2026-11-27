@@ -94,6 +94,9 @@ export function TradePanel({
       });
       const executed = await res.json();
       if (!res.ok) throw new Error(executed.error ?? "Jupiter rejected the submission.");
+      if (executed.status && executed.status !== "Success") {
+        throw new Error(executed.error || "The venue could not execute this order.");
+      }
 
       setPhase("placed");
       const signature = typeof executed.signature === "string" ? executed.signature : null;
