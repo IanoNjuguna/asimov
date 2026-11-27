@@ -1,0 +1,22 @@
+# Per-agent skill copies; canonical project skills live in .agents/skills/
+agent/
+**/.claude/
+
+# Dependencies
+node_modules/
+
+# Secrets and local env
+.env
+.env.*
+!.env.example
+
+# Build output
+dist/
+build/
+.next/
+target/
+*.log
+
+# Agent scratch
+.hermes/plans/
+brag-output-*/
