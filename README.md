@@ -1,36 +1,43 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Asimov
 
-## Getting Started
+Prediction markets on Solana, built for one-handed reading. A price is a probability.
 
-First, run the development server:
+Live events come from Jupiter's Prediction Market API, which aggregates Polymarket markets onto
+Solana. No contracts in this repo: the wallet signs, Jupiter's keepers fill, the venue settles.
+
+## Run it
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm install
+JUP_API_KEY=... pnpm dev   # the key is optional, see below
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open http://localhost:3000.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+`JUP_API_KEY` comes from portal.jup.ag and is optional. Without it, requests go keyless at 0.5 req/s,
+so `lib/jup.ts` serialises every upstream call and memoises responses briefly. A market screen costs
+three calls, which is about seven seconds keyless and instant with a key.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Shape
 
-## Learn More
+| Path | What it does |
+| --- | --- |
+| `app/page.tsx` | Feed, filterable by category, sorted by the venue's trending order |
+| `app/m/[id]/page.tsx` | Market: price, spread, orderbook depth, payout math, resolution rules |
+| `app/portfolio/page.tsx` | Positions, cost basis, P&amp;L, claim |
+| `app/about/page.tsx` | What the data is, what the app does not do, where trading is blocked |
+| `lib/jup.ts` | Server-only API client: throttle, TTL cache, typed in micro USD |
+| `lib/format.ts` | Micro USD to cents, contracts and payouts |
 
-To learn more about Next.js, take a look at the following resources:
+## Gates
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+pnpm verify   # typecheck, lint, build
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Known limits
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- The API is beta. Screens read live data only, so an upstream failure shows a message instead of
+  a stale list.
+- Trading is blocked by the venue for United States and South Korea IP addresses.
+- No market creation, no custody, no own liquidity. The app never touches user funds.

@@ -2,8 +2,19 @@
 
 A Solana app built for the Dev3pack Global Hackathon, 27-29 Nov 2026 (hybrid, Nairobi build station).
 
-Product surface is still open. This file holds the process and the skills; the brief lands here once
-the idea is picked.
+## The brief
+
+Asimov is a mobile-first view of live prediction markets on Solana, sold on one idea: a market price
+is a probability, and the app makes that legible one-handed. Feed, market, trade, portfolio.
+
+- No contracts. It is a client over Jupiter's Prediction Market API (`api.jup.ag/prediction/v1`),
+  which aggregates Polymarket markets onto Solana and settles USDC from a $5 minimum.
+- The edge is presentation and speed to market, not a new primitive.
+- `JUP_API_KEY` is optional. Keyless upstream allows 0.5 req/s, so `lib/jup.ts` serialises calls and
+  memoises results; with a key from portal.jup.ag the same code runs fast. A demo without a key is
+  visibly slow, which is the only reason to bother.
+- Trading is IP-blocked by the venue for the US and South Korea. The About screen says so.
+- Never rsync a `create-next-app` scaffold over this directory: it overwrites this file.
 
 ## Facts about the event
 
