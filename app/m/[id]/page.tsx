@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { TradePanel } from "@/components/TradePanel";
-import { cents, closesIn, pct } from "@/lib/format";
+import { cents, closesLabel, pct } from "@/lib/format";
 import { getEvent, getMarket, getOrderbook } from "@/lib/jup";
 
 // Live prices: render with data instead of a shell, which is what this surface is for.
@@ -50,12 +50,12 @@ export default async function MarketPage({ params }: { params: Promise<{ id: str
       </div>
 
       <header className="mt-3 px-4">
-        <h1 className="text-[22px] font-semibold leading-tight tracking-tight">{market.title}</h1>
-        <p className="mt-1 text-[13px] text-muted">{event?.metadata.title}</p>
+        <h1 className="text-[22px] font-semibold leading-tight tracking-tight">{event?.metadata.title}</h1>
+        <p className="mt-1 text-[13px] text-muted">{market.title}</p>
       </header>
 
-      <section className="mt-5 flex items-end justify-between px-4">
-        <div>
+      <section className="mt-5 flex items-end justify-between gap-4 px-4">
+        <div className="min-w-0">
           <p className="tnum text-[44px] font-semibold leading-none tracking-tight">
             {pct(yes)}
             <span className="text-[20px] font-normal text-dim">%</span>
@@ -64,31 +64,47 @@ export default async function MarketPage({ params }: { params: Promise<{ id: str
             YES · {cents(yes)} · sell {cents(market.pricing.sellYesPriceUsd)}
           </p>
         </div>
-        <div className="text-right">
-          <p className="tnum text-[15px] text-muted">NO {cents(no)}</p>
-          <p className="tnum mt-1 text-[11px] text-dim">spread {(spread).toFixed(1)}¢</p>
+        {/* One right axis: every qualifier ends on the same edge as the figure above it. */}
+        <dl className="shrink-0 text-right text-[11px] leading-[1.6] text-dim">
+          <div className="flex justify-end gap-2">
+            <dt>spread</dt>
+            <dd className="tnum text-muted">{(spread).toFixed(1)}¢</dd>
+          </div>
           {event?.metadata.closeTime ? (
-            <p className="mt-1 text-[11px] text-dim">closes {closesIn(event.metadata.closeTime)}</p>
+            <div className="flex justify-end gap-2">
+              <dt>closes</dt>
+              <dd className="text-muted">{closesLabel(event.metadata.closeTime).replace(/^closes\s/, "")}</dd>
+            </div>
           ) : null}
-        </div>
+          <div className="flex justify-end gap-2">
+            <dt>no</dt>
+            <dd className="tnum text-muted">{cents(no)}</dd>
+          </div>
+        </dl>
       </section>
 
-      <TradePanel marketId={id} yesPrice={yes} noPrice={no} />
+      <TradePanel marketId={id} status={market.status} yesPrice={yes} noPrice={no} />
 
       {book ? (
-        <section className="mx-4 mt-5 grid grid-cols-2 gap-4">
-          <div>
-            <h2 className="mb-2 text-[11px] uppercase tracking-[0.14em] text-dim">YES depth</h2>
+        <section className="mx-4 mt-5 grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-line bg-line">
+          <div className="bg-surface p-3">
+            <div className="mb-2 flex items-baseline justify-between">
+              <h2 className="text-[11px] uppercase tracking-[0.14em] text-dim">Yes depth</h2>
+              <span className="text-[10px] uppercase tracking-[0.08em] text-dim">price·size</span>
+            </div>
             <Depth levels={book.yes} />
           </div>
-          <div>
-            <h2 className="mb-2 text-[11px] uppercase tracking-[0.14em] text-dim">NO depth</h2>
+          <div className="bg-surface p-3">
+            <div className="mb-2 flex items-baseline justify-between">
+              <h2 className="text-[11px] uppercase tracking-[0.14em] text-dim">No depth</h2>
+              <span className="text-[10px] uppercase tracking-[0.08em] text-dim">price·size</span>
+            </div>
             <Depth levels={book.no} />
           </div>
         </section>
       ) : null}
 
-      <section className="mx-4 mt-6 pb-6">
+      <section className="mx-4 mt-6 border-t border-line pt-4 pb-6">
         <h2 className="text-[11px] uppercase tracking-[0.14em] text-dim">Resolution</h2>
         <p className="mt-2 whitespace-pre-line text-[13px] leading-relaxed text-muted">
           {market.rulesPrimary || "Rules are published on the underlying market."}
