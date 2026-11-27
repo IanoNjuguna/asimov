@@ -21,6 +21,9 @@ type Position = {
 
 const usd = (micro: string | null) => (micro === null ? "—" : `$${(Number(micro) / 1e6).toFixed(2)}`);
 
+// Sells move real USDC on mainnet, so they sit behind the same gate as buys.
+const TRADING_ENABLED = process.env.NEXT_PUBLIC_ALLOW_TRADING === "true";
+
 async function fetchPositions(owner: string): Promise<Position[]> {
   const res = await fetch(`/api/positions?owner=${owner}`);
   const body = await res.json();
@@ -84,6 +87,88 @@ export function PortfolioView() {
     [account, signTransaction],
   );
 
+  /** Signs a venue-built transaction and lands it through /api/execute. */
+  const submit = useCallback(
+    async (transaction: string, context: Record<string, unknown>) => {
+      const signed = await signTransaction(transaction);
+      const res = await fetch("/api/execute", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ signedTransaction: signed, context }),
+      });
+      const body = await res.json();
+      if (!res.ok) throw new Error(body.error ?? "The venue rejected the submission.");
+      if (body.status !== "Success") {
+        throw new Error(body.error || "The venue could not execute this transaction.");
+      }
+      return body.signature as string | null;
+    },
+    [signTransaction],
+  );
+
+  const exit = useCallback(
+    async (positionPubkey: string) => {
+      if (!account) return;
+      setBusy(positionPubkey);
+      setError(null);
+      try {
+        const built = await fetch("/api/sell", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ positionPubkey, ownerPubkey: account.address }),
+        }).then((r) => r.json());
+        if (built.error) throw new Error(built.error);
+
+        await submit(built.transaction, built.context);
+
+        const owner = account.address;
+        setBook({ owner, items: await fetchPositions(owner) });
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "The sell did not go through.");
+      } finally {
+        setBusy(null);
+      }
+    },
+    [account, submit],
+  );
+
+  const closeAll = useCallback(async () => {
+    if (!account) return;
+    setBusy("all");
+    setError(null);
+    try {
+      const built = await fetch("/api/close-all", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ownerPubkey: account.address, slippageBps: 2500 }),
+      }).then((r) => r.json());
+      if (built.error) throw new Error(built.error);
+
+      const sells = (built.sells ?? []) as { transaction: string; context: Record<string, unknown> }[];
+      if (!sells.length) throw new Error("Nothing to close.");
+
+      // One signed transaction per position: a failure on one must not hide the rest.
+      const failed: string[] = [];
+      for (const sell of sells) {
+        try {
+          await submit(sell.transaction, sell.context);
+        } catch (e) {
+          failed.push(e instanceof Error ? e.message : "unknown");
+        }
+      }
+
+      const owner = account.address;
+      setBook({ owner, items: await fetchPositions(owner) });
+      if (failed.length) {
+        setError(`${failed.length} of ${sells.length} sells failed: ${failed[0]}`);
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Close all did not go through.");
+    } finally {
+      setBusy(null);
+    }
+  }, [account, submit]);
+
   if (!account) {
     return (
       <div className="mt-6 rounded-2xl border border-line bg-surface p-5">
@@ -129,6 +214,23 @@ export function PortfolioView() {
             </p>
           </div>
         </div>
+
+        {open.length > 1 ? (
+          <button
+            type="button"
+            onClick={() => void closeAll()}
+            disabled={!TRADING_ENABLED || busy === "all"}
+            className="mt-3 w-full rounded-lg border border-line py-2 text-[12px] font-medium text-muted disabled:opacity-40"
+          >
+            {busy === "all" ? "Closing" : `Close all ${open.length} positions`}
+          </button>
+        ) : null}
+
+        {!TRADING_ENABLED ? (
+          <p className="mt-2 text-center text-[11px] leading-relaxed text-dim">
+            Selling is off in this build. Set NEXT_PUBLIC_ALLOW_TRADING=true to sign exits.
+          </p>
+        ) : null}
       </div>
 
       {error ? (
@@ -189,6 +291,19 @@ export function PortfolioView() {
                     className="mt-2.5 w-full rounded-lg bg-yes/15 py-2 text-[13px] font-semibold text-yes disabled:opacity-50"
                   >
                     {busy === p.pubkey ? "Claiming" : `Claim ${usd(p.payoutUsd)}`}
+                  </button>
+                ) : null}
+
+                {!p.claimable && !p.claimed ? (
+                  <button
+                    type="button"
+                    onClick={() => void exit(p.pubkey)}
+                    disabled={!TRADING_ENABLED || busy === p.pubkey}
+                    className="mt-2.5 w-full rounded-lg border border-line py-2 text-[13px] font-medium text-muted disabled:opacity-40"
+                  >
+                    {busy === p.pubkey
+                      ? "Selling"
+                      : `Exit ${Number(p.contractsDecimal).toFixed(2)} contracts`}
                   </button>
                 ) : null}
 
