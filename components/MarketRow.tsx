@@ -28,13 +28,10 @@ export function MarketRow({ event }: { event: JupEvent }) {
       className="row-press flex items-start gap-3 border-b border-line px-4 py-3.5 active:bg-surface"
     >
       <div className="min-w-0 flex-1">
-        <p className="line-clamp-2 text-[15px] font-medium leading-[1.35] text-ink">
+        <p className="line-clamp-2 text-[15.5px] font-medium leading-[1.3] text-ink">
           {event.metadata.title}
         </p>
-        {event.markets.length > 1 ? (
-          <p className="mt-1 line-clamp-1 text-[13px] text-muted">{m.title}</p>
-        ) : null}
-        <p className="mt-1.5 flex items-center gap-1.5 text-[11.5px] uppercase tracking-wide text-dim">
+        <p className="mt-1.5 flex items-center gap-1.5 text-[11px] uppercase tracking-[0.08em] text-dim">
           <span>{event.category}</span>
           <span aria-hidden>·</span>
           <span className="tnum normal-case tracking-normal">
