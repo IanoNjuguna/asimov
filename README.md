@@ -76,7 +76,7 @@ abandoning one means closing the position.
 ## Gates
 
 ```bash
-bun run verify   # typecheck, lint, build
+bun run verify   # test, typecheck, lint, build
 ```
 
 ## Known limits
