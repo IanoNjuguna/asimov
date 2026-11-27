@@ -3,6 +3,7 @@
 import { useCallback, useMemo, useState } from "react";
 import { ConnectButton } from "@/components/ConnectButton";
 import { cents, contractsFor, payoutFor, profitFor } from "@/lib/format";
+import { assertExecuted } from "@/lib/trade";
 import { useWallet } from "@/lib/wallet";
 
 // Signing for real only when the build says so: the venue is mainnet and the
@@ -94,12 +95,9 @@ export function TradePanel({
       });
       const executed = await res.json();
       if (!res.ok) throw new Error(executed.error ?? "Jupiter rejected the submission.");
-      if (executed.status && executed.status !== "Success") {
-        throw new Error(executed.error || "The venue could not execute this order.");
-      }
+      const signature = assertExecuted(executed);
 
       setPhase("placed");
-      const signature = typeof executed.signature === "string" ? executed.signature : null;
       setMessage(
         signature
           ? `With the keeper network. Signature ${signature.slice(0, 12)}…`
