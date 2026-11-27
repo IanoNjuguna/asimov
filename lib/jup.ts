@@ -202,6 +202,23 @@ async function jupPost<T>(path: string, body: unknown): Promise<T> {
   });
 }
 
+/** DELETE with a JSON body, which is how the venue builds sells and close-all. */
+async function jupDelete<T>(path: string, body: unknown): Promise<T> {
+  return throttle(async () => {
+    const res = await fetch(`${BASE}${path}`, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json", ...(KEY ? { "x-api-key": KEY } : {}) },
+      body: JSON.stringify(body),
+      cache: "no-store",
+    });
+    if (!res.ok) {
+      throw new Error(`jupiter ${path} -> ${res.status} ${await res.text().catch(() => "")}`.slice(0, 300));
+    }
+    return (await res.json()) as T;
+  });
+}
+
+
 export async function buildBuyOrder(input: {
   ownerPubkey: string;
   marketId: string;
@@ -244,4 +261,21 @@ export async function buildClaim(positionPubkey: string, ownerPubkey: string) {
     { ownerPubkey },
   );
 }
+
+/** Sells every contract of one position. Returns the same shape as an order build. */
+export async function buildSell(positionPubkey: string, ownerPubkey: string): Promise<BuiltOrder> {
+  return jupDelete<BuiltOrder>(`/positions/${positionPubkey}`, { ownerPubkey });
+}
+
+/** Closes everything open at once: one unsigned sell per position. */
+export async function buildCloseAll(
+  ownerPubkey: string,
+  minSellPriceSlippageBps: number,
+): Promise<{ data: BuiltOrder[] }> {
+  return jupDelete<{ data: BuiltOrder[] }>(`/positions`, {
+    ownerPubkey,
+    minSellPriceSlippageBps,
+  });
+}
+
 
