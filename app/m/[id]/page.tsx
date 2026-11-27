@@ -73,7 +73,7 @@ export default async function MarketPage({ params }: { params: Promise<{ id: str
         </div>
       </section>
 
-      <TradePanel yesPrice={yes} noPrice={no} />
+      <TradePanel marketId={id} yesPrice={yes} noPrice={no} />
 
       {book ? (
         <section className="mx-4 mt-5 grid grid-cols-2 gap-4">
