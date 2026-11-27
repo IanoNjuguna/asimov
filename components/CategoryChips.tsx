@@ -3,7 +3,7 @@ import { CATEGORIES, type CategoryKey } from "@/lib/jup";
 
 export function CategoryChips({ active }: { active: CategoryKey }) {
   return (
-    <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 pb-3">
+    <div className="no-scrollbar flex gap-2 overflow-x-auto px-4 pb-3">
       {CATEGORIES.map((c) => {
         const on = c.key === active;
         return (
