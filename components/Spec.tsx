@@ -1,10 +1,11 @@
 // Spec line, the reference's strongest device: institutional labels in a loose row, separated by a
-// small star rather than a middot. Values switch to mono because they are numbers.
+// small star rather than a middot. Values switch to mono because they are numbers. A value can carry
+// the spot ink when it is a state rather than a fact, which keeps closing-soon rare enough to read.
 export function Spec({
   items,
   className = "",
 }: {
-  items: Array<{ k: string; v?: string }>;
+  items: Array<{ k: string; v?: string; tone?: "signal" }>;
   className?: string;
 }) {
   return (
@@ -17,7 +18,16 @@ export function Spec({
             </span>
           ) : null}
           <span>{it.k}</span>
-          {it.v ? <span className="tnum font-mono text-muted">{it.v}</span> : null}
+          {it.v ? (
+            <span
+              className={[
+                "tnum font-mono",
+                it.tone === "signal" ? "text-signal" : "text-muted",
+              ].join(" ")}
+            >
+              {it.v}
+            </span>
+          ) : null}
         </span>
       ))}
     </p>

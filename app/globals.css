@@ -1,6 +1,8 @@
 @import "tailwindcss";
 
 @theme {
+  /* If a token added here does not appear in the built CSS chunk, delete .next and rebuild: Turbopack
+     caches the class scan, so a new utility can go missing until the cache is dropped. */
   --color-canvas: #0b0b0a;
   --color-surface: #121110;
   --color-raised: #1b1a17;
@@ -8,6 +10,10 @@
   --color-ink: #ede6d8;
   --color-muted: #9c9486;
   --color-dim: #7f7a6c;
+
+  /* One spot ink. Printed, not neon: 5.92:1 on the ground, and it carries the probability bars and
+     the active tab, nothing else. */
+  --color-signal: #ff4d00;
 
   --font-sans: var(--font-display), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-mono-plex), ui-monospace, monospace;
