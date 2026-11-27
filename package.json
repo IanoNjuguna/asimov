@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "verify": "pnpm typecheck && pnpm lint && pnpm build"
+    "verify": "bun run typecheck && bun run lint && bun run build"
   },
   "dependencies": {
     "next": "16.4.6",
@@ -25,5 +25,5 @@
     "tailwindcss": "4.3.3",
     "typescript": "^5"
   },
-  "packageManager": "pnpm@12.9.1"
+  "packageManager": "bun@1.3.14"
 }
