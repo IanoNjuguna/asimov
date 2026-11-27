@@ -45,6 +45,20 @@ Three things worth knowing before you touch this:
 Claims are different: Jupiter returns no execution context for them, so they are landed through
 `SOLANA_RPC_URL` via `POST /api/submit`.
 
+## Exiting
+
+```
+POST /api/sell       positionPubkey, ownerPubkey          -> unsigned sell + execution context
+POST /api/close-all  ownerPubkey, slippageBps             -> one unsigned sell per open position
+```
+
+Both build through `DELETE /prediction/v1/positions`, so a sell is landed by the same
+`POST /api/execute` as a buy. Closing all signs one transaction per position and reports which ones
+failed rather than stopping at the first.
+
+There is no separate cancel for a pending order: the Prediction API publishes no cancel endpoint, so
+abandoning one means closing the position.
+
 ## Shape
 
 | Path | What it does |
@@ -71,5 +85,5 @@ bun run verify   # typecheck, lint, build
   a stale list.
 - Trading is blocked by the venue for United States and South Korea IP addresses.
 - No market creation, no custody, no own liquidity. The app never touches user funds.
-- Buy orders only: no sells, no cancel, no close-all.
+- Sell one position or all of them; there is no partial sell and no per-order cancel.
 - Minimum order is $5, and this app caps a single order at $250.
