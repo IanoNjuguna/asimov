@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { ConnectButton } from "@/components/ConnectButton";
+import { assertExecuted } from "@/lib/trade";
 import { useWallet } from "@/lib/wallet";
 
 type Position = {
@@ -98,10 +99,7 @@ export function PortfolioView() {
       });
       const body = await res.json();
       if (!res.ok) throw new Error(body.error ?? "The venue rejected the submission.");
-      if (body.status !== "Success") {
-        throw new Error(body.error || "The venue could not execute this transaction.");
-      }
-      return body.signature as string | null;
+      return assertExecuted(body);
     },
     [signTransaction],
   );
