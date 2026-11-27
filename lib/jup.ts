@@ -131,3 +131,117 @@ export async function getOrderbook(marketId: string): Promise<Orderbook> {
 export async function getTradingStatus(): Promise<{ trading_active: boolean }> {
   return jup<{ trading_active: boolean }>(`/trading-status`, 30_000);
 }
+
+/* ------------------------------------------------------------------ trading */
+/* Everything below builds unsigned transactions or reads a wallet's book.    */
+
+export const USDC_MINT = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
+export const JUPUSD_MINT = "JuprjznTrTSp2UFa3ZBUFgwdAmtZCq4MQCwysN55USD";
+
+export type Execution = {
+  endpoint: string;
+  context: Record<string, unknown>;
+};
+
+export type BuiltOrder = {
+  transaction: string;
+  txMeta: { blockhash: string; lastValidBlockHeight: number };
+  execution: Execution;
+  requiredSigners?: string[];
+  order: {
+    orderPubkey: string | null;
+    positionPubkey: string;
+    userPubkey: string;
+    marketId: string;
+    isBuy: boolean;
+    isYes: boolean;
+    contractsMicro: string;
+    contractsDecimal: string;
+    orderCostUsd: string;
+    estimatedTotalFeeUsd: string;
+  };
+};
+
+export type JupPosition = {
+  pubkey: string;
+  ownerPubkey: string;
+  marketId: string;
+  isYes: boolean;
+  contractsMicro: string;
+  contractsDecimal: string;
+  totalCostUsd: string;
+  valueUsd: string | null;
+  payoutUsd: string;
+  pnlUsd: string | null;
+  pnlUsdPercent: number | null;
+  claimable: boolean;
+  claimed: boolean;
+  claimedUsd: string;
+  marketMetadata?: { title?: string; status?: string; result?: string | null };
+  eventMetadata?: { title?: string; category?: string };
+};
+
+export type JupOrderStatus = {
+  status?: "pending" | "filled" | "failed";
+  order?: { contractsMicro?: string; filledContracts?: string; status?: string };
+};
+
+/** POST with no cache: order builds and submissions must never be served stale. */
+async function jupPost<T>(path: string, body: unknown): Promise<T> {
+  return throttle(async () => {
+    const res = await fetch(`${BASE}${path}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...(KEY ? { "x-api-key": KEY } : {}) },
+      body: JSON.stringify(body),
+      cache: "no-store",
+    });
+    if (!res.ok) {
+      throw new Error(`jupiter ${path} -> ${res.status} ${await res.text().catch(() => "")}`.slice(0, 300));
+    }
+    return (await res.json()) as T;
+  });
+}
+
+export async function buildBuyOrder(input: {
+  ownerPubkey: string;
+  marketId: string;
+  isYes: boolean;
+  amountUsd: number;
+  mint?: string;
+}): Promise<BuiltOrder> {
+  return jupPost<BuiltOrder>(`/orders`, {
+    ownerPubkey: input.ownerPubkey,
+    marketId: input.marketId,
+    isYes: input.isYes,
+    isBuy: true,
+    depositAmount: String(Math.round(input.amountUsd * 1e6)),
+    depositMint: input.mint ?? USDC_MINT,
+  });
+}
+
+export async function executeOrder(input: {
+  signedTransaction: string;
+  context: Record<string, unknown>;
+}): Promise<Record<string, unknown>> {
+  return jupPost<Record<string, unknown>>(`/execute`, input);
+}
+
+export async function getPositions(ownerPubkey: string): Promise<JupPosition[]> {
+  const data = await jup<{ data: JupPosition[] }>(
+    `/positions?${new URLSearchParams({ ownerPubkey })}`,
+    5_000,
+  );
+  return data.data ?? [];
+}
+
+export async function getOrderStatus(orderPubkey: string): Promise<JupOrderStatus> {
+  return jup<JupOrderStatus>(`/orders/status/${orderPubkey}`, 0);
+}
+
+export async function buildClaim(positionPubkey: string, ownerPubkey: string) {
+  return jupPost<{ transaction: string; position?: { payoutAmountUsd?: string } }>(
+    `/positions/${positionPubkey}/claim`,
+    { ownerPubkey },
+  );
+}
+
