@@ -5,10 +5,11 @@ export const micro = (n: number | string | null | undefined): number =>
 /** 0.62 -> "62" */
 export const pct = (priceMicro: number): string => (priceMicro / 1e6 * 100).toFixed(0);
 
-/** 0.047 -> "4.7¢" */
+/** 0.047 -> "4.7¢", 0.06 -> "6¢" */
 export const cents = (priceMicro: number): string => {
   const c = priceMicro / 1e6 * 100;
-  return `${c < 10 ? c.toFixed(1) : c.toFixed(0)}¢`;
+  const s = c < 10 ? c.toFixed(1) : c.toFixed(0);
+  return `${s.replace(/\.0$/, "")}¢`;
 };
 
 export const usd = (n: number): string => {
@@ -37,3 +38,10 @@ export function closesIn(iso: string | null | undefined): string {
   if (h < 24) return `${Math.round(h)}h`;
   return `${Math.round(h / 24)}d`;
 }
+
+/** "closes in 2h", or just "closed": the bare value cannot be prefixed. */
+export const closesLabel = (iso: string | null | undefined): string => {
+  const value = closesIn(iso);
+  if (!value) return "";
+  return value === "closed" ? "closed" : `closes ${value}`;
+};
