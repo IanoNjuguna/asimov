@@ -28,9 +28,11 @@ export const payoutFor = (stakeUsd: number, priceMicro: number): number =>
 export const profitFor = (stakeUsd: number, priceMicro: number): number =>
   payoutFor(stakeUsd, priceMicro) - stakeUsd;
 
-export function closesIn(iso: string | null | undefined): string {
+/** Time to close, as a short label. `now` is passed in so the value is computed at request time and
+ *  never baked into a prerender: Next's cacheComponents rejects a bare Date.now() during prerender. */
+export function closesIn(iso: string | null | undefined, now: number = Date.now()): string {
   if (!iso) return "";
-  const ms = new Date(iso).getTime() - Date.now();
+  const ms = new Date(iso).getTime() - now;
   if (Number.isNaN(ms)) return "";
   if (ms <= 0) return "closed";
   const h = ms / 3_600_000;
