@@ -8,8 +8,8 @@ Solana. No contracts in this repo: the wallet signs, Jupiter's keepers fill, the
 ## Run it
 
 ```bash
-pnpm install
-JUP_API_KEY=... pnpm dev   # the key is optional, see below
+bun install
+JUP_API_KEY=... bun run dev   # the key is optional, see below
 ```
 
 Open http://localhost:3000.
@@ -32,7 +32,7 @@ three calls, which is about seven seconds keyless and instant with a key.
 ## Gates
 
 ```bash
-pnpm verify   # typecheck, lint, build
+bun run verify   # typecheck, lint, build
 ```
 
 ## Known limits

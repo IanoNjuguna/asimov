@@ -41,6 +41,8 @@ the directory directly. `skills-lock.json` records where each came from.
 
 ## Working style
 
+- Bun is the package manager: `bun install`, `bun run <script>`, `bun.lock` is committed. No pnpm or npm
+  lockfiles.
 - Small, logically grouped commits. No single big commit.
 - One change per branch, and a branch per feature.
 - Push is part of done, not a later step.
