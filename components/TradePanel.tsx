@@ -26,10 +26,12 @@ const usd = (micro: string | undefined) => `$${(Number(micro ?? 0) / 1e6).toFixe
 
 export function TradePanel({
   marketId,
+  status,
   yesPrice,
   noPrice,
 }: {
   marketId: string;
+  status: "open" | "closed" | "cancelled";
   yesPrice: number;
   noPrice: number;
 }) {
@@ -136,6 +138,22 @@ export function TradePanel({
           ? "Order placed"
           : "Review order";
 
+  // A closed market still renders the panel: the price is real history, the controls are not.
+  if (status !== "open") {
+    return (
+      <section className="mx-4 mt-5 rounded-2xl border border-line bg-surface p-3">
+        <div className="mb-2 flex items-center justify-between">
+          <span className="text-[11px] uppercase tracking-[0.14em] text-dim">Trade</span>
+          <ConnectButton />
+        </div>
+        <p className="rounded-xl border border-line bg-canvas px-3 py-3 text-[12px] leading-relaxed text-muted">
+          {status === "cancelled" ? "This market was cancelled." : "This market has closed."} Positions
+          already held can be exited or claimed from the portfolio.
+        </p>
+      </section>
+    );
+  }
+
   return (
     <section className="mx-4 mt-5 rounded-2xl border border-line bg-surface p-3">
       <div className="mb-2 flex items-center justify-between">
@@ -207,7 +225,9 @@ export function TradePanel({
         </div>
         <div className="flex justify-between">
           <dt className="text-muted">Profit</dt>
-          <dd className="tnum text-yes">+${profit.toFixed(2)}</dd>
+          <dd className={`tnum ${profit >= 0 ? "text-yes" : "text-no"}`}>
+            {profit >= 0 ? "+" : "-"}${Math.abs(profit).toFixed(2)}
+          </dd>
         </div>
       </dl>
 
