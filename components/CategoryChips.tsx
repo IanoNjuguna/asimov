@@ -3,7 +3,7 @@ import { CATEGORIES, type CategoryKey } from "@/lib/jup";
 
 export function CategoryChips({ active }: { active: CategoryKey }) {
   return (
-    <div className="no-scrollbar flex gap-2 overflow-x-auto px-4 pb-3">
+    <div className="no-scrollbar flex gap-1.5 overflow-x-auto px-4 pb-3">
       {CATEGORIES.map((c) => {
         const on = c.key === active;
         return (
@@ -12,13 +12,13 @@ export function CategoryChips({ active }: { active: CategoryKey }) {
             href={c.key === "all" ? "/" : `/?c=${c.key}`}
             scroll={false}
             className={[
-              "shrink-0 rounded-full border px-3.5 py-1.5 text-[13px] font-medium transition-colors",
+              "shrink-0 border px-3 py-[7px] transition-colors",
               on
-                ? "border-ink bg-ink text-canvas"
-                : "border-line bg-surface text-muted active:bg-raised",
+                ? "plate border-ink"
+                : "border-line text-muted active:bg-surface",
             ].join(" ")}
           >
-            {c.label}
+            <span className="label">{c.label}</span>
           </Link>
         );
       })}
