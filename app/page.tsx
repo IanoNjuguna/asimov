@@ -1,4 +1,5 @@
 import { CategoryChips } from "@/components/CategoryChips";
+import { FollowingCard } from "@/components/FollowingCard";
 import { MarketRow } from "@/components/MarketRow";
 import { CATEGORIES, getFeed, type CategoryKey } from "@/lib/jup";
 
@@ -41,13 +42,18 @@ export default async function Home({
       ) : events.length === 0 ? (
         <p className="mx-4 mt-6 text-[13px] text-muted">No open markets in this category.</p>
       ) : (
-        <ul>
-          {events.map((e) => (
-            <li key={e.eventId}>
-              <MarketRow event={e} />
-            </li>
-          ))}
-        </ul>
+        <>
+          <div className="px-4">
+            <FollowingCard events={events} />
+          </div>
+          <ul>
+            {events.map((e) => (
+              <li key={e.eventId}>
+                <MarketRow event={e} />
+              </li>
+            ))}
+          </ul>
+        </>
       )}
     </div>
   );
