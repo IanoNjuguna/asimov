@@ -30,9 +30,9 @@ export function FollowingCard({ events }: { events: JupEvent[] }) {
   const rows = following.slice(0, MAX_ROWS);
 
   return (
-    <section className="mt-3 rounded-2xl border border-line bg-surface">
+    <section className="mt-3 border border-line bg-surface">
       <div className="flex items-baseline justify-between px-3.5 pb-1 pt-3">
-        <h2 className="text-[11px] uppercase tracking-[0.14em] text-dim">Following</h2>
+        <h2 className="label text-dim">following</h2>
         <span className="tnum text-[11px] text-dim">{following.length}</span>
       </div>
 
@@ -45,7 +45,7 @@ export function FollowingCard({ events }: { events: JupEvent[] }) {
                 <p className="truncate text-[13.5px] text-ink">{now?.title || f.title || f.eventTitle}</p>
                 <p className="truncate text-[11px] text-muted">{f.eventTitle}</p>
               </Link>
-              <span className="tnum shrink-0 text-[13px] text-muted">
+              <span className="tnum shrink-0 font-mono text-[12px] text-muted">
                 {now ? `${pct(now.yes)}%` : "—"}
               </span>
               <button

@@ -151,7 +151,7 @@ export function PortfolioView() {
 
   if (!account) {
     return (
-      <div className="mt-6 rounded-2xl border border-line bg-surface p-5">
+      <div className="mt-6 border border-line bg-surface p-5">
         <p className="text-[14px] font-medium text-ink">No wallet connected</p>
         <p className="mt-1.5 text-[13px] leading-relaxed text-muted">
           Connect a wallet holding USDC and your positions, cost basis and P&amp;L appear here.
@@ -176,7 +176,7 @@ export function PortfolioView() {
 
   return (
     <div className="mt-4">
-      <div className="rounded-2xl border border-line bg-surface p-4">
+      <div className="border border-line bg-surface p-4">
         <div className="grid grid-cols-3 gap-2 text-center">
           <div>
             <p className="text-[10px] uppercase tracking-[0.12em] text-dim">Cost</p>
@@ -188,7 +188,7 @@ export function PortfolioView() {
           </div>
           <div>
             <p className="text-[10px] uppercase tracking-[0.12em] text-dim">P&amp;L</p>
-            <p className={`tnum mt-1 text-[15px] ${pnl >= 0 ? "text-yes" : "text-no"}`}>
+            <p className={`tnum mt-1 font-mono text-[15px] ${pnl >= 0 ? "text-ink" : "text-dim"}`}>
               {pnl >= 0 ? "+" : ""}
               {usd(String(pnl))}
             </p>
@@ -200,7 +200,7 @@ export function PortfolioView() {
             type="button"
             onClick={() => void closeAll()}
             disabled={!TRADING_ENABLED || busy === "all"}
-            className="mt-3 w-full rounded-lg border border-line py-2 text-[12px] font-medium text-muted disabled:opacity-40"
+            className="mt-3 w-full border border-line py-2 label text-muted disabled:opacity-40"
           >
             {busy === "all" ? "Closing" : `Close all ${open.length} positions`}
           </button>
@@ -214,13 +214,13 @@ export function PortfolioView() {
       </div>
 
       {error ? (
-        <p className="mt-3 rounded-xl border border-no/40 bg-no/10 px-3 py-2 text-[12px] leading-relaxed text-no">
+        <p className="mt-3 border border-line bg-surface px-3 py-2 text-[12px] leading-relaxed text-muted">
           {error}
         </p>
       ) : null}
 
       {positions.length === 0 ? (
-        <div className="mt-4 rounded-2xl border border-line bg-surface p-5">
+        <div className="mt-4 border border-line bg-surface p-5">
           <p className="text-[14px] font-medium text-ink">No positions yet</p>
           <p className="mt-1.5 text-[13px] leading-relaxed text-muted">
             Open a market and place an order. Filled orders show up here within seconds.
@@ -231,21 +231,21 @@ export function PortfolioView() {
           {positions.map((p) => {
             const positive = Number(p.pnlUsd ?? 0) >= 0;
             return (
-              <li key={p.pubkey} className="rounded-2xl border border-line bg-surface p-3.5">
+              <li key={p.pubkey} className="border border-line bg-surface p-3.5">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <p className="truncate text-[14px] font-medium text-ink">
                       {p.marketMetadata?.title ?? p.marketId}
                     </p>
                     <p className="mt-0.5 text-[12px] text-muted">
-                      <span className={p.isYes ? "text-yes" : "text-no"}>
+                      <span className={p.isYes ? "text-ink" : "text-dim"}>
                         {p.isYes ? "YES" : "NO"}
                       </span>{" "}
                       · {Number(p.contractsDecimal).toFixed(2)} contracts
                     </p>
                   </div>
                   <div className="shrink-0 text-right">
-                    <p className={`tnum text-[14px] ${positive ? "text-yes" : "text-no"}`}>
+                    <p className={`tnum font-mono text-[14px] ${positive ? "text-ink" : "text-dim"}`}>
                       {positive ? "+" : ""}
                       {usd(p.pnlUsd)}
                     </p>
@@ -268,7 +268,7 @@ export function PortfolioView() {
                     type="button"
                     onClick={() => void claim(p.pubkey)}
                     disabled={busy === p.pubkey}
-                    className="mt-2.5 w-full rounded-lg bg-yes/15 py-2 text-[13px] font-semibold text-yes disabled:opacity-50"
+                    className="mt-2.5 w-full bg-ink py-2 label text-canvas disabled:opacity-50"
                   >
                     {busy === p.pubkey ? "Claiming" : `Claim ${usd(p.payoutUsd)}`}
                   </button>
@@ -279,7 +279,7 @@ export function PortfolioView() {
                     type="button"
                     onClick={() => void exit(p.pubkey)}
                     disabled={!TRADING_ENABLED || busy === p.pubkey}
-                    className="mt-2.5 w-full rounded-lg border border-line py-2 text-[13px] font-medium text-muted disabled:opacity-40"
+                    className="mt-2.5 w-full border border-line py-2 label text-muted disabled:opacity-40"
                   >
                     {busy === p.pubkey
                       ? "Selling"

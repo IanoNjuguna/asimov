@@ -4,7 +4,9 @@ import { pickTop } from "@/components/FeaturedCard";
 import { FollowingCard } from "@/components/FollowingCard";
 import { MarketRow } from "@/components/MarketRow";
 import { Mark } from "@/components/Mark";
+import { requestClock } from "@/lib/clock";
 import { CATEGORIES, getFeed, type CategoryKey } from "@/lib/jup";
+import { connection } from "next/server";
 
 // Live prices: render with data instead of a shell, which is what this surface is for.
 export const instant = false;
@@ -17,6 +19,10 @@ export default async function Home({
 }: {
   searchParams: Promise<{ c?: string }>;
 }) {
+  // The clock is request-time, never prerendered: see lib/clock.ts.
+  await connection();
+  const now = requestClock();
+
   const { c } = await searchParams;
   const active: CategoryKey = CATEGORIES.some((x) => x.key === c)
     ? (c as CategoryKey)
@@ -77,7 +83,7 @@ export default async function Home({
           <ul>
             {rest.map((e, i) => (
               <li key={e.eventId}>
-                <MarketRow event={e} index={i} />
+                <MarketRow event={e} index={i} now={now} />
               </li>
             ))}
           </ul>

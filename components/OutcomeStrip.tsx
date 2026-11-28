@@ -21,8 +21,8 @@ export function OutcomeStrip({ markets, currentId }: { markets: JupMarket[]; cur
   return (
     <section className="mt-5">
       <div className="flex items-baseline justify-between px-4">
-        <h2 className="text-[11px] uppercase tracking-[0.14em] text-dim">Outcomes</h2>
-        <span className="tnum text-[11px] text-dim">{open.length}</span>
+        <h2 className="label text-dim">outcomes</h2>
+        <span className="tnum font-mono text-[10px] text-dim">{open.length}</span>
       </div>
 
       <ul className="no-scrollbar mt-2 flex gap-2 overflow-x-auto px-4 pb-1">
@@ -34,12 +34,12 @@ export function OutcomeStrip({ markets, currentId }: { markets: JupMarket[]; cur
                 href={`/m/${m.marketId}`}
                 aria-current={on}
                 className={[
-                  "flex w-[132px] flex-col gap-1 rounded-xl border px-3 py-2",
-                  on ? "border-ink bg-surface" : "border-line bg-canvas active:bg-surface",
+                  "flex w-[132px] flex-col gap-1 border px-3 py-2",
+                  on ? "plate border-ink" : "border-line bg-canvas active:bg-surface",
                 ].join(" ")}
               >
-                <span className="line-clamp-2 h-[30px] text-[12px] leading-[1.25] text-ink">{m.title}</span>
-                <span className="tnum text-[15px] font-medium text-ink">
+                <span className="line-clamp-2 h-[30px] text-[12px] leading-[1.25]">{m.title}</span>
+                <span className="tnum font-mono text-[15px] font-medium">
                   {pct(m.pricing.buyYesPriceUsd)}
                   <span className="text-[12px] font-normal text-muted">%</span>
                 </span>
@@ -48,7 +48,7 @@ export function OutcomeStrip({ markets, currentId }: { markets: JupMarket[]; cur
           );
         })}
         {hidden > 0 ? (
-          <li className="flex w-[92px] shrink-0 items-center justify-center rounded-xl border border-line text-[12px] text-dim">
+          <li className="flex w-[92px] shrink-0 items-center justify-center border border-line font-mono text-[12px] text-dim">
             +{hidden}
           </li>
         ) : null}

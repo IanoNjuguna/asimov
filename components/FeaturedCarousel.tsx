@@ -57,8 +57,8 @@ export function FeaturedCarousel({ events }: { events: JupEvent[] }) {
             aria-current={i === active}
             onClick={() => goTo(i)}
             className={[
-              "h-1.5 rounded-full transition-all",
-              i === active ? "w-4 bg-ink" : "w-1.5 bg-line",
+              "h-1.5 transition-all",
+              i === active ? "w-4 bg-signal" : "w-1.5 bg-line",
             ].join(" ")}
           />
         ))}

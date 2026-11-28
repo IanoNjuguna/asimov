@@ -149,12 +149,12 @@ export function TradePanel({
   // A closed market still renders the panel: the price is real history, the controls are not.
   if (status !== "open") {
     return (
-      <section className="mx-4 mt-5 rounded-2xl border border-line bg-surface p-3">
+      <section className="mx-4 mt-5 border border-line bg-surface p-3">
         <div className="mb-2 flex items-center justify-between">
-          <span className="text-[11px] uppercase tracking-[0.14em] text-dim">Trade</span>
+          <span className="label text-dim">trade</span>
           <ConnectButton />
         </div>
-        <p className="rounded-xl border border-line bg-canvas px-3 py-3 text-[12px] leading-relaxed text-muted">
+        <p className="border border-line bg-canvas px-3 py-3 text-[12px] leading-relaxed text-muted">
           {status === "cancelled" ? "This market was cancelled." : "This market has closed."} Positions
           already held can be exited or claimed from the portfolio.
         </p>
@@ -163,9 +163,9 @@ export function TradePanel({
   }
 
   return (
-    <section className="mx-4 mt-5 rounded-2xl border border-line bg-surface p-3">
+    <section className="mx-4 mt-5 border border-line bg-surface p-3">
       <div className="mb-2 flex items-center justify-between">
-        <span className="text-[11px] uppercase tracking-[0.14em] text-dim">Trade</span>
+        <span className="label text-dim">trade</span>
         <ConnectButton />
       </div>
 
@@ -184,30 +184,26 @@ export function TradePanel({
               }}
               className={[
                 "flex items-center justify-between rounded-xl border px-3 py-2.5 transition-colors",
-                on
-                  ? s === "yes"
-                    ? "border-yes/60 bg-yes/10"
-                    : "border-no/60 bg-no/10"
-                  : "border-line bg-canvas",
+                on ? "plate border-ink" : "border-line bg-canvas",
               ].join(" ")}
             >
               <span
                 className={[
                   "text-[13px] font-semibold uppercase tracking-wide",
-                  on ? (s === "yes" ? "text-yes" : "text-no") : "text-muted",
+                  on ? "" : "text-muted",
                 ].join(" ")}
               >
-                <span className="mr-1 text-[10px] font-normal normal-case tracking-normal text-dim">buy</span>
+                <span className="mr-1 label text-[9px] opacity-60">buy</span>
                 {s}
               </span>
-              <span className="tnum text-[15px] font-medium text-ink">{cents(p)}</span>
+              <span className="tnum font-mono text-[14px] font-medium text-ink">{cents(p)}</span>
             </button>
           );
         })}
       </div>
 
       <label className="mt-3 flex items-center gap-3 rounded-xl border border-line bg-canvas px-3 py-3">
-        <span className="text-[13px] text-muted">Stake</span>
+        <span className="label text-muted">stake</span>
         <span className="text-[15px] text-dim">$</span>
         <input
           value={stake}
@@ -237,8 +233,8 @@ export function TradePanel({
                 setBuilt(null);
               }}
               className={[
-                "rounded-lg border px-2.5 py-1 text-[12px] font-medium transition-colors",
-                on ? "border-ink text-ink" : "border-line text-muted active:bg-raised",
+                "border px-2.5 py-1 label transition-colors",
+                on ? "plate border-ink" : "border-line text-muted active:bg-raised",
               ].join(" ")}
             >
               ${v}
@@ -253,7 +249,7 @@ export function TradePanel({
             setPhase("idle");
             setBuilt(null);
           }}
-          className="rounded-lg border border-line px-2.5 py-1 text-[12px] font-medium text-muted disabled:opacity-40"
+          className="border border-line px-2.5 py-1 label text-muted disabled:opacity-40"
         >
           Max
         </button>
@@ -265,19 +261,19 @@ export function TradePanel({
       <dl className="mt-3 space-y-1.5 px-1 text-[13px]">
         <div className="flex justify-between">
           <dt className="text-muted">Contracts</dt>
-          <dd className="tnum text-ink">
+          <dd className="tnum font-mono text-ink">
             <Tween value={contracts} format={(n) => n.toFixed(2)} />
           </dd>
         </div>
         <div className="flex justify-between">
           <dt className="text-muted">Payout if {side.toUpperCase()}</dt>
-          <dd className="tnum text-ink">
+          <dd className="tnum font-mono text-ink">
             $<Tween value={payout} format={(n) => n.toFixed(2)} />
           </dd>
         </div>
         <div className="flex justify-between">
           <dt className="text-muted">Profit</dt>
-          <dd className={`tnum ${profit >= 0 ? "text-yes" : "text-no"}`}>
+          <dd className={`tnum font-mono ${profit >= 0 ? "text-ink" : "text-dim"}`}>
             {profit >= 0 ? "+" : "-"}$<Tween value={Math.abs(profit)} format={(n) => n.toFixed(2)} />
           </dd>
         </div>
@@ -293,7 +289,7 @@ export function TradePanel({
           }
           void review();
         }}
-        className="mt-3 w-full rounded-xl bg-ink py-3 text-[15px] font-semibold text-canvas disabled:opacity-40"
+        className="mt-3 w-full bg-ink py-3 text-[12px] font-semibold uppercase tracking-[0.14em] text-canvas disabled:opacity-40"
       >
         {primaryLabel}
       </button>
@@ -318,13 +314,13 @@ export function TradePanel({
           <div
             role="dialog"
             aria-modal="true"
-            className="sheet-in absolute inset-x-0 bottom-0 mx-auto max-w-[520px] rounded-t-2xl border-t border-line bg-surface px-4 pb-[calc(14px+env(safe-area-inset-bottom))] pt-3"
+            className="sheet-in absolute inset-x-0 bottom-0 mx-auto max-w-[520px] border-t border-line bg-surface px-4 pb-[calc(14px+env(safe-area-inset-bottom))] pt-3"
           >
-            <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-line" />
+            <div className="mx-auto mb-3 h-[2px] w-10 bg-line" />
 
             {phase === "placed" ? (
               <>
-                <p className="text-[17px] font-semibold text-ink">Order placed</p>
+                <p className="label-lg text-ink">order placed</p>
                 <p className="mt-1 text-[13px] leading-relaxed text-muted">{message}</p>
                 <div className="mt-3 space-y-1.5 border-t border-line pt-3 text-[13px]">
                   <div className="flex justify-between">
@@ -344,14 +340,14 @@ export function TradePanel({
                     setPhase("idle");
                     setBuilt(null);
                   }}
-                  className="mt-4 w-full rounded-lg bg-ink py-2.5 text-[14px] font-semibold text-canvas"
+                  className="mt-4 w-full bg-ink py-2.5 label text-canvas"
                 >
                   Done
                 </button>
               </>
             ) : (
               <>
-                <p className="text-[17px] font-semibold text-ink">Review order</p>
+                <p className="label-lg text-ink">review order</p>
                 <div className="mt-3 space-y-1.5 text-[13px]">
                   <div className="flex justify-between">
                     <span className="text-muted">Order</span>
@@ -380,7 +376,7 @@ export function TradePanel({
                       setBuilt(null);
                       setMessage(null);
                     }}
-                    className="flex-1 rounded-lg border border-line py-2.5 text-[13px] text-muted disabled:opacity-40"
+                    className="flex-1 border border-line py-2.5 label text-muted disabled:opacity-40"
                   >
                     Back
                   </button>
@@ -388,7 +384,7 @@ export function TradePanel({
                     type="button"
                     disabled={!TRADING_ENABLED || phase === "signing"}
                     onClick={() => void place()}
-                    className="flex-[2] rounded-lg bg-ink py-2.5 text-[13px] font-semibold text-canvas disabled:opacity-40"
+                    className="flex-[2] bg-ink py-2.5 label text-canvas disabled:opacity-40"
                   >
                     {phase === "signing"
                       ? "Waiting for your wallet"

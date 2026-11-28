@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { EventThumb } from "@/components/EventThumb";
 import { FollowButton } from "@/components/FollowButton";
-import { cents, closesLabel, micro, pct, usd } from "@/lib/format";
+import { Spec } from "@/components/Spec";
+import { cents, closesIn, micro, pct, usd } from "@/lib/format";
 import type { JupEvent } from "@/lib/jup";
 
 function headline(event: JupEvent) {
@@ -18,7 +19,7 @@ function headline(event: JupEvent) {
 /** Stagger is capped at the first screen: nothing below the fold waits on an animation. */
 const delayFor = (index: number) => ({ animationDelay: `${Math.min(index, 8) * 22}ms` });
 
-export function MarketRow({ event, index = 0 }: { event: JupEvent; index?: number }) {
+export function MarketRow({ event, index = 0, now }: { event: JupEvent; index?: number; now: number }) {
   const m = headline(event);
   if (!m) return null;
 
@@ -26,70 +27,65 @@ export function MarketRow({ event, index = 0 }: { event: JupEvent; index?: numbe
   const no = m.pricing.buyNoPriceUsd;
   const vol = micro(event.volume24hr) || micro(event.volumeUsd);
   const openCount = event.markets.filter((x) => x.status === "open" && x.result === null).length;
+  const width = Math.min(100, Math.max(2, Math.round((yes / 1e6) * 100)));
 
   return (
     <div className="rise flex items-start border-b border-line" style={delayFor(index)}>
       <Link
         href={`/m/${m.marketId}`}
-        className="row-press flex min-w-0 flex-1 items-center gap-3 px-4 py-3 active:bg-surface"
+        className="row-press flex min-w-0 flex-1 items-start gap-3 px-4 py-3.5 active:bg-surface"
       >
-        <EventThumb src={event.metadata.imageUrl} alt={event.metadata.title} size={44} />
+        <EventThumb
+          src={event.metadata.imageUrl}
+          alt={event.metadata.title}
+          size={40}
+          className="mt-0.5 border border-line"
+        />
 
         <div className="min-w-0 flex-1">
-          <div className="flex items-start justify-between gap-3">
-            <p className="line-clamp-2 min-w-0 flex-1 text-[15.5px] font-medium leading-[1.3] text-ink">
-              {event.metadata.title}
-            </p>
-            <p className="tnum shrink-0 text-[22px] font-semibold leading-none text-ink">
-              {pct(yes)}
-              <span className="text-[13px] font-normal text-dim">%</span>
-            </p>
-          </div>
-
-          <p className="mt-1.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[11px] uppercase tracking-[0.08em] text-dim">
-            {event.isLive ? (
-              <span className="flex items-center gap-1 text-no">
-                <span className="live-dot inline-block h-[5px] w-[5px] rounded-full bg-no" />
-                Live
-              </span>
-            ) : null}
-            <span>{event.category}</span>
-            <span aria-hidden>·</span>
-            <span className="tnum normal-case tracking-normal">{usd(vol)} 24h</span>
-            {event.metadata.closeTime ? (
-              <>
-                <span aria-hidden>·</span>
-                <span className="normal-case tracking-normal">{closesLabel(event.metadata.closeTime)}</span>
-              </>
-            ) : null}
-            {openCount > 1 ? (
-              <>
-                <span aria-hidden>·</span>
-                <span className="tnum normal-case tracking-normal">{openCount} mkts</span>
-              </>
-            ) : (
-              <span className="tnum normal-case tracking-normal">· no {cents(no)}</span>
-            )}
+          <p className="line-clamp-2 text-[15.5px] font-semibold leading-[1.25] tracking-[-0.005em] text-ink">
+            {event.metadata.title}
           </p>
 
-          {/* The % above is the YES price, so this line names the outcome it belongs to and
-              carries the other side of the pair in one right-hand column. Single-market
-              events have no label to show, so their pair lives on the meta line instead. */}
-          {openCount > 1 ? (
-            <div className="mt-1.5 flex items-baseline justify-between gap-3">
-              <span className="min-w-0 flex-1 truncate text-[12px] text-muted">{m.title}</span>
-              <span className="tnum shrink-0 text-[12px] text-muted">
-                <span className="mr-1 text-[10px] uppercase tracking-[0.08em] text-dim">no</span>
-                {cents(no)}
+          <div className="mt-2 flex flex-wrap items-center gap-x-1 gap-y-1">
+            {event.isLive ? (
+              <span className="label flex items-center gap-1 text-signal">
+                <span className="live-dot inline-block h-[5px] w-[5px] bg-signal" />
+                live
               </span>
-            </div>
+            ) : null}
+            <Spec
+              items={[
+                { k: event.category },
+                { k: `${usd(vol)} 24h` },
+                ...(event.metadata.closeTime
+                  ? [{ k: "closes", v: closesIn(event.metadata.closeTime, now) }]
+                  : []),
+                ...(openCount > 1 ? [{ k: `${openCount} mkts` }] : []),
+              ]}
+            />
+          </div>
+
+          {openCount > 1 ? (
+            <p className="mt-1.5 truncate font-mono text-[11px] text-muted">{m.title}</p>
           ) : null}
+        </div>
+
+        <div className="w-[62px] shrink-0 text-right">
+          <p className="tnum flex items-start justify-end gap-1 text-[23px] font-extrabold leading-none tracking-[-0.03em] text-ink">
+            {pct(yes)}
+            <span className="label mt-1 text-dim">%</span>
+          </p>
+          <div className="mt-2 h-[3px] w-full bg-line">
+            <div className="h-full bg-signal" style={{ width: `${width}%` }} />
+          </div>
+          <p className="tnum mt-[6px] font-mono text-[10px] leading-none text-dim">NO {cents(no)}</p>
         </div>
       </Link>
 
       {/* Its own gutter, so the star never nests inside the link and the price column
           still lines up down the feed. */}
-      <div className="shrink-0 pr-1 pt-1.5">
+      <div className="shrink-0 pr-1 pt-2">
         <FollowButton
           entry={{
             marketId: m.marketId,
