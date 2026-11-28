@@ -42,8 +42,8 @@ export function closesIn(iso: string | null | undefined, now: number = Date.now(
 }
 
 /** "closes in 2h", or just "closed": the bare value cannot be prefixed. */
-export const closesLabel = (iso: string | null | undefined): string => {
-  const value = closesIn(iso);
+export const closesLabel = (iso: string | null | undefined, now?: number): string => {
+  const value = closesIn(iso, now);
   if (!value) return "";
   return value === "closed" ? "closed" : `closes ${value}`;
 };

@@ -41,7 +41,7 @@ export function FeaturedCard({ event, className = "mt-3" }: { event: JupEvent; c
   return (
     <Link
       href={`/m/${market.marketId}`}
-      className={`row-press block rounded-2xl border border-line bg-surface p-3 active:bg-raised ${className}`}
+      className={`row-press block border border-line bg-surface p-3 active:bg-raised ${className}`}
     >
       <div className="flex items-start gap-3">
         <EventThumb src={event.metadata.imageUrl} alt={event.metadata.title} size={56} />
@@ -51,8 +51,8 @@ export function FeaturedCard({ event, className = "mt-3" }: { event: JupEvent; c
           </p>
           <p className="mt-1.5 flex flex-wrap items-center gap-x-1.5 text-[11px] uppercase tracking-[0.08em] text-dim">
             {event.isLive ? (
-              <span className="flex items-center gap-1 text-no">
-                <span className="live-dot inline-block h-[5px] w-[5px] rounded-full bg-no" />
+              <span className="flex items-center gap-1 text-signal">
+                <span className="live-dot inline-block h-[5px] w-[5px] bg-signal" />
                 Live
               </span>
             ) : null}
@@ -67,7 +67,7 @@ export function FeaturedCard({ event, className = "mt-3" }: { event: JupEvent; c
             ) : null}
           </p>
         </div>
-        <p className="tnum shrink-0 text-[26px] font-semibold leading-none text-ink">
+        <p className="tnum shrink-0 text-[26px] font-extrabold leading-none tracking-[-0.03em] text-ink">
           {pct(yes)}
           <span className="text-[14px] font-normal text-dim">%</span>
         </p>
@@ -78,11 +78,11 @@ export function FeaturedCard({ event, className = "mt-3" }: { event: JupEvent; c
         <div className="mt-1.5 grid grid-cols-2 border-t border-line">
           <div className="flex items-baseline justify-between py-2 pr-3">
             <span className="text-[11px] uppercase tracking-[0.08em] text-dim">Yes</span>
-            <span className="tnum text-[14px] text-ink">{cents(yes)}</span>
+            <span className="tnum font-mono text-[13px] text-ink">{cents(yes)}</span>
           </div>
           <div className="flex items-baseline justify-between border-l border-line py-2 pl-3">
             <span className="text-[11px] uppercase tracking-[0.08em] text-dim">No</span>
-            <span className="tnum text-[14px] text-ink">{cents(no)}</span>
+            <span className="tnum font-mono text-[13px] text-ink">{cents(no)}</span>
           </div>
         </div>
       </div>
