@@ -2,35 +2,14 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { ConnectButton } from "@/components/ConnectButton";
+import { fetchPositions, notifyPositionsChanged, type Position } from "@/lib/positions";
 import { assertExecuted } from "@/lib/trade";
 import { useWallet } from "@/lib/wallet";
-
-type Position = {
-  pubkey: string;
-  marketId: string;
-  isYes: boolean;
-  contractsDecimal: string;
-  totalCostUsd: string;
-  valueUsd: string | null;
-  payoutUsd: string;
-  pnlUsd: string | null;
-  pnlUsdPercent: number | null;
-  claimable: boolean;
-  claimed: boolean;
-  marketMetadata?: { title?: string; status?: string; result?: string | null };
-};
 
 const usd = (micro: string | null) => (micro === null ? "—" : `$${(Number(micro) / 1e6).toFixed(2)}`);
 
 // Sells move real USDC on mainnet, so they sit behind the same gate as buys.
 const TRADING_ENABLED = process.env.NEXT_PUBLIC_ALLOW_TRADING === "true";
-
-async function fetchPositions(owner: string): Promise<Position[]> {
-  const res = await fetch(`/api/positions?owner=${owner}`);
-  const body = await res.json();
-  if (!res.ok) throw new Error(body.error ?? "Could not load positions.");
-  return (body.positions ?? []) as Position[];
-}
 
 export function PortfolioView() {
   const { account, signTransaction } = useWallet();
@@ -79,6 +58,7 @@ export function PortfolioView() {
 
         const owner = account.address;
         setBook({ owner, items: await fetchPositions(owner) });
+        notifyPositionsChanged();
       } catch (e) {
         setError(e instanceof Error ? e.message : "The claim did not go through.");
       } finally {
@@ -121,6 +101,7 @@ export function PortfolioView() {
 
         const owner = account.address;
         setBook({ owner, items: await fetchPositions(owner) });
+        notifyPositionsChanged();
       } catch (e) {
         setError(e instanceof Error ? e.message : "The sell did not go through.");
       } finally {
@@ -157,6 +138,7 @@ export function PortfolioView() {
 
       const owner = account.address;
       setBook({ owner, items: await fetchPositions(owner) });
+      notifyPositionsChanged();
       if (failed.length) {
         setError(`${failed.length} of ${sells.length} sells failed: ${failed[0]}`);
       }
