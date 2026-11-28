@@ -3,15 +3,17 @@ import { EventThumb } from "@/components/EventThumb";
 import { cents, closesLabel, micro, pct, usd } from "@/lib/format";
 import type { JupEvent } from "@/lib/jup";
 
+/** The loudest open events by 24h volume. */
+export function pickTop(events: JupEvent[], n: number): JupEvent[] {
+  return events
+    .filter((e) => e.markets.some((m) => m.status === "open" && m.result === null))
+    .sort((a, b) => (micro(b.volume24hr) || micro(b.volumeUsd)) - (micro(a.volume24hr) || micro(a.volumeUsd)))
+    .slice(0, n);
+}
+
 /** The loudest open event by 24h volume, or null when nothing qualifies. */
 export function pickFeatured(events: JupEvent[]): JupEvent | null {
-  const open = events.filter((e) => e.markets.some((m) => m.status === "open" && m.result === null));
-  if (!open.length) return null;
-  return open.reduce((best, e) =>
-    (micro(e.volume24hr) || micro(e.volumeUsd)) > (micro(best.volume24hr) || micro(best.volumeUsd))
-      ? e
-      : best,
-  );
+  return pickTop(events, 1)[0] ?? null;
 }
 
 export function featuredMarket(event: JupEvent) {
@@ -28,7 +30,7 @@ export function featuredMarket(event: JupEvent) {
  * One object carries the identity of the feed; the list below carries the scanning.
  * Same data as a row, a different amount of air.
  */
-export function FeaturedCard({ event }: { event: JupEvent }) {
+export function FeaturedCard({ event, className = "mt-3" }: { event: JupEvent; className?: string }) {
   const market = featuredMarket(event);
   if (!market) return null;
 
@@ -39,7 +41,7 @@ export function FeaturedCard({ event }: { event: JupEvent }) {
   return (
     <Link
       href={`/m/${market.marketId}`}
-      className="row-press mt-3 block rounded-2xl border border-line bg-surface p-3 active:bg-raised"
+      className={`row-press block rounded-2xl border border-line bg-surface p-3 active:bg-raised ${className}`}
     >
       <div className="flex items-start gap-3">
         <EventThumb src={event.metadata.imageUrl} alt={event.metadata.title} size={56} />
