@@ -46,4 +46,60 @@ body {
     transform: scale(0.996);
     transition: transform 90ms ease-out;
   }
+
+  /* Rows arrive rather than appear. Delay is set per row, capped at the first screen. */
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  .rise {
+    animation: rise 240ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+
+  /* Artwork fades in so a slow bucket does not pop a grey square. */
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  .fade-in {
+    animation: fade-in 200ms ease-out both;
+  }
+
+  /* Live means live: the dot breathes, nothing else moves. */
+  @keyframes pulse-dot {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.3;
+    }
+  }
+  .live-dot {
+    animation: pulse-dot 1.8s ease-in-out infinite;
+  }
+
+  /* Skeletons stand in for a market that is still being priced. */
+  @keyframes breathe {
+    0%,
+    100% {
+      opacity: 0.55;
+    }
+    50% {
+      opacity: 1;
+    }
+  }
+  .breathe {
+    animation: breathe 1.4s ease-in-out infinite;
+  }
 }
