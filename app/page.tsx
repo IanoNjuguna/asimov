@@ -1,4 +1,4 @@
-import { CategoryChips } from "@/components/CategoryChips";
+import { CategoryFilter } from "@/components/CategoryFilter";
 import { FeaturedCarousel } from "@/components/FeaturedCarousel";
 import { pickTop } from "@/components/FeaturedCard";
 import { FollowingCard } from "@/components/FollowingCard";
@@ -61,7 +61,7 @@ export default async function Home({
             mainnet ✳
           </p>
         </div>
-        <CategoryChips active={active} />
+        <CategoryFilter active={active} />
         <div className="ticks h-px w-full opacity-70" />
       </header>
 
