@@ -196,7 +196,7 @@ export function TradePanel({
                 <span className="mr-1 label text-[9px] opacity-60">buy</span>
                 {s}
               </span>
-              <span className="tnum font-mono text-[14px] font-medium text-ink">{cents(p)}</span>
+              <span className={`tnum font-mono text-[14px] font-medium ${on ? "" : "text-ink"}`}>{cents(p)}</span>
             </button>
           );
         })}
