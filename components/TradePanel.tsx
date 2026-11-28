@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
-import { ConnectButton } from "@/components/ConnectButton";
+import { ConnectButton, openWalletPicker } from "@/components/ConnectButton";
 import { Tween } from "@/components/Tween";
 import { useBalances } from "@/lib/balance";
 import { cents, contractsFor, payoutFor, profitFor } from "@/lib/format";
@@ -40,7 +40,7 @@ export function TradePanel({
   yesPrice: number;
   noPrice: number;
 }) {
-  const { wallets, account, connect, signTransaction } = useWallet();
+  const { account, signTransaction } = useWallet();
   const balances = useBalances();
   const [side, setSide] = useState<"yes" | "no">("yes");
   const [stake, setStake] = useState("5");
@@ -140,13 +140,11 @@ export function TradePanel({
     ? `Balance is $${(balanceUsd ?? 0).toFixed(2)}`
     : !valid
       ? `Minimum $${MIN_STAKE}`
-      : !account
-        ? "Connect wallet to trade"
-        : phase === "building"
-          ? "Building"
-          : phase === "placed"
-            ? "Order placed"
-            : "Review order";
+      : phase === "building"
+        ? "Building"
+        : phase === "placed"
+          ? "Order placed"
+          : "Review order";
 
   // A closed market still renders the panel: the price is real history, the controls are not.
   if (status !== "open") {
@@ -199,6 +197,7 @@ export function TradePanel({
                   on ? (s === "yes" ? "text-yes" : "text-no") : "text-muted",
                 ].join(" ")}
               >
+                <span className="mr-1 text-[10px] font-normal normal-case tracking-normal text-dim">buy</span>
                 {s}
               </span>
               <span className="tnum text-[15px] font-medium text-ink">{cents(p)}</span>
@@ -289,10 +288,7 @@ export function TradePanel({
         disabled={!valid || phase === "building" || phase === "signing" || phase === "placed"}
         onClick={() => {
           if (!account) {
-            const first = wallets[0];
-            if (first) void connect(first).catch((e: unknown) => {
-              setMessage(e instanceof Error ? e.message : "Could not connect.");
-            });
+            openWalletPicker();
             return;
           }
           void review();

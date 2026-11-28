@@ -1,14 +1,27 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useWallet } from "@/lib/wallet";
 
 const short = (address: string) => `${address.slice(0, 4)}…${address.slice(-4)}`;
+
+/** Any surface can ask for the picker instead of silently connecting the first wallet. */
+export const WALLET_PICKER_EVENT = "asimov:open-wallet-picker";
+
+export function openWalletPicker(): void {
+  if (typeof window !== "undefined") window.dispatchEvent(new Event(WALLET_PICKER_EVENT));
+}
 
 export function ConnectButton() {
   const { wallets, wallet, account, connecting, connect, disconnect } = useWallet();
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const onOpen = () => setOpen(true);
+    window.addEventListener(WALLET_PICKER_EVENT, onOpen);
+    return () => window.removeEventListener(WALLET_PICKER_EVENT, onOpen);
+  }, []);
 
   if (account) {
     return (
