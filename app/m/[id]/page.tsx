@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { EventThumb } from "@/components/EventThumb";
+import { OutcomeStrip } from "@/components/OutcomeStrip";
 import { TradePanel } from "@/components/TradePanel";
 import { cents, closesLabel, pct } from "@/lib/format";
 import { getEvent, getMarket, getOrderbook } from "@/lib/jup";
@@ -93,6 +94,8 @@ export default async function MarketPage({ params }: { params: Promise<{ id: str
           ) : null}
         </dl>
       </section>
+
+      {event ? <OutcomeStrip markets={event.markets} currentId={id} /> : null}
 
       <TradePanel marketId={id} status={market.status} yesPrice={yes} noPrice={no} />
 
