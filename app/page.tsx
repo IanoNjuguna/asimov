@@ -1,4 +1,5 @@
 import { CategoryChips } from "@/components/CategoryChips";
+import { FeaturedCard, pickFeatured } from "@/components/FeaturedCard";
 import { FollowingCard } from "@/components/FollowingCard";
 import { MarketRow } from "@/components/MarketRow";
 import { CATEGORIES, getFeed, type CategoryKey } from "@/lib/jup";
@@ -24,6 +25,11 @@ export default async function Home({
     failed = true;
   }
 
+  // One object above the list, the same rows below it: the featured event is not
+  // repeated immediately below itself.
+  const featured = pickFeatured(events);
+  const rest = featured ? events.filter((e) => e.eventId !== featured.eventId) : events;
+
   return (
     <div>
       <header className="sticky top-0 z-30 bg-canvas/95 pt-[calc(env(safe-area-inset-top)+14px)] backdrop-blur">
@@ -46,10 +52,13 @@ export default async function Home({
           <div className="px-4">
             <FollowingCard events={events} />
           </div>
+          <div className="px-4">
+            {featured ? <FeaturedCard event={featured} /> : null}
+          </div>
           <ul>
-            {events.map((e) => (
+            {rest.map((e, i) => (
               <li key={e.eventId}>
-                <MarketRow event={e} />
+                <MarketRow event={e} index={i} />
               </li>
             ))}
           </ul>
