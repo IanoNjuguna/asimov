@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { EventThumb } from "@/components/EventThumb";
 import { TradePanel } from "@/components/TradePanel";
 import { cents, closesLabel, pct } from "@/lib/format";
 import { getEvent, getMarket, getOrderbook } from "@/lib/jup";
@@ -49,9 +50,12 @@ export default async function MarketPage({ params }: { params: Promise<{ id: str
         <span className="text-[11px] uppercase tracking-wide text-dim">{event?.category}</span>
       </div>
 
-      <header className="mt-3 px-4">
-        <h1 className="text-[22px] font-semibold leading-tight tracking-tight">{event?.metadata.title}</h1>
-        <p className="mt-1 text-[13px] text-muted">{market.title}</p>
+      <header className="mt-3 flex items-start gap-3 px-4">
+        <EventThumb src={event?.metadata.imageUrl} alt={event?.metadata.title ?? market.title} size={44} />
+        <div className="min-w-0">
+          <h1 className="text-[22px] font-semibold leading-tight tracking-tight">{event?.metadata.title}</h1>
+          <p className="mt-1 text-[13px] text-muted">{market.title}</p>
+        </div>
       </header>
 
       <section className="mt-5 flex items-end justify-between gap-4 px-4">
@@ -60,12 +64,23 @@ export default async function MarketPage({ params }: { params: Promise<{ id: str
             {pct(yes)}
             <span className="text-[20px] font-normal text-dim">%</span>
           </p>
-          <p className="mt-1.5 text-[12px] text-muted">
-            YES · {cents(yes)} · sell {cents(market.pricing.sellYesPriceUsd)}
-          </p>
+          <p className="mt-1.5 text-[12px] text-muted">implied chance of YES</p>
         </div>
-        {/* One right axis: every qualifier ends on the same edge as the figure above it. */}
+        {/* Bid and ask on one axis: two asks sum past 100, so the pair is printed as a
+            range and the spread has somewhere to live. */}
         <dl className="shrink-0 text-right text-[11px] leading-[1.6] text-dim">
+          <div className="flex justify-end gap-2">
+            <dt>yes</dt>
+            <dd className="tnum text-muted">
+              {cents(market.pricing.sellYesPriceUsd)}–{cents(yes)}
+            </dd>
+          </div>
+          <div className="flex justify-end gap-2">
+            <dt>no</dt>
+            <dd className="tnum text-muted">
+              {cents(market.pricing.sellNoPriceUsd)}–{cents(no)}
+            </dd>
+          </div>
           <div className="flex justify-end gap-2">
             <dt>spread</dt>
             <dd className="tnum text-muted">{(spread).toFixed(1)}¢</dd>
@@ -76,10 +91,6 @@ export default async function MarketPage({ params }: { params: Promise<{ id: str
               <dd className="text-muted">{closesLabel(event.metadata.closeTime).replace(/^closes\s/, "")}</dd>
             </div>
           ) : null}
-          <div className="flex justify-end gap-2">
-            <dt>no</dt>
-            <dd className="tnum text-muted">{cents(no)}</dd>
-          </div>
         </dl>
       </section>
 
