@@ -2,6 +2,7 @@
 
 import { useCallback, useMemo, useState } from "react";
 import { ConnectButton, openWalletPicker } from "@/components/ConnectButton";
+import { Sheet } from "@/components/Sheet";
 import { Tween } from "@/components/Tween";
 import { useBalances } from "@/lib/balance";
 import { cents, contractsFor, payoutFor, profitFor } from "@/lib/format";
@@ -299,28 +300,20 @@ export function TradePanel({
           "Fees apply on executed trades only. Positions pay $1 per contract at settlement."}
       </p>
 
-      {(phase === "confirm" || phase === "signing" || phase === "placed") && built ? (
-        <div className="fixed inset-0 z-50">
-          <button
-            type="button"
-            aria-label="Close"
-            onClick={() => {
-              if (phase === "signing") return;
-              setPhase("idle");
-              setBuilt(null);
-            }}
-            className="backdrop-in absolute inset-0 bg-canvas/70"
-          />
-          <div
-            role="dialog"
-            aria-modal="true"
-            className="sheet-in absolute inset-x-0 bottom-0 mx-auto max-w-[520px] border-t border-line bg-surface px-4 pb-[calc(14px+env(safe-area-inset-bottom))] pt-3"
-          >
-            <div className="mx-auto mb-3 h-[2px] w-10 bg-line" />
+      {built ? (
+        <Sheet
+          open={phase === "confirm" || phase === "signing" || phase === "placed"}
+          onClose={() => {
+            setPhase("idle");
+            setBuilt(null);
+          }}
+          dismissible={phase !== "signing"}
+          labelledBy="trade-sheet"
+        >
 
             {phase === "placed" ? (
               <>
-                <p className="label-lg text-ink">order placed</p>
+                <p id="trade-sheet" className="label-lg text-ink">order placed</p>
                 <p className="mt-1 text-[13px] leading-relaxed text-muted">{message}</p>
                 <div className="mt-3 space-y-1.5 border-t border-line pt-3 text-[13px]">
                   <div className="flex justify-between">
@@ -347,7 +340,7 @@ export function TradePanel({
               </>
             ) : (
               <>
-                <p className="label-lg text-ink">review order</p>
+                <p id="trade-sheet" className="label-lg text-ink">review order</p>
                 <div className="mt-3 space-y-1.5 text-[13px]">
                   <div className="flex justify-between">
                     <span className="text-muted">Order</span>
@@ -402,8 +395,7 @@ export function TradePanel({
                 ) : null}
               </>
             )}
-          </div>
-        </div>
+        </Sheet>
       ) : null}
     </section>
   );
