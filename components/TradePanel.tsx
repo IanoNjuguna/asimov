@@ -2,6 +2,7 @@
 
 import { useCallback, useMemo, useState } from "react";
 import { ConnectButton } from "@/components/ConnectButton";
+import { useBalances } from "@/lib/balance";
 import { cents, contractsFor, payoutFor, profitFor } from "@/lib/format";
 import { assertExecuted } from "@/lib/trade";
 import { useWallet } from "@/lib/wallet";
@@ -10,6 +11,9 @@ import { useWallet } from "@/lib/wallet";
 // deposit is real USDC.
 const TRADING_ENABLED = process.env.NEXT_PUBLIC_ALLOW_TRADING === "true";
 const MIN_STAKE = 5;
+/** Mirrors the per-order cap enforced in /api/order. */
+const MAX_STAKE = 250;
+const QUICK_STAKES = [5, 10, 25] as const;
 
 type Phase = "idle" | "building" | "confirm" | "signing" | "placed";
 
@@ -36,6 +40,7 @@ export function TradePanel({
   noPrice: number;
 }) {
   const { wallets, account, connect, signTransaction } = useWallet();
+  const balances = useBalances();
   const [side, setSide] = useState<"yes" | "no">("yes");
   const [stake, setStake] = useState("5");
   const [phase, setPhase] = useState<Phase>("idle");
@@ -44,7 +49,9 @@ export function TradePanel({
 
   const price = side === "yes" ? yesPrice : noPrice;
   const amount = Number.parseFloat(stake) || 0;
-  const valid = amount >= MIN_STAKE;
+  const balanceUsd = balances ? Number(balances.tokens) / 1e6 : null;
+  const shortOfFunds = balanceUsd !== null && amount > balanceUsd + 1e-9;
+  const valid = amount >= MIN_STAKE && !shortOfFunds;
 
   const { contracts, payout, profit } = useMemo(
     () => ({
@@ -128,15 +135,17 @@ export function TradePanel({
     }
   }, [built, signTransaction]);
 
-  const primaryLabel = !valid
-    ? `Minimum $${MIN_STAKE}`
-    : !account
-      ? "Connect wallet to trade"
-      : phase === "building"
-        ? "Building"
-        : phase === "placed"
-          ? "Order placed"
-          : "Review order";
+  const primaryLabel = shortOfFunds
+    ? `Balance is $${(balanceUsd ?? 0).toFixed(2)}`
+    : !valid
+      ? `Minimum $${MIN_STAKE}`
+      : !account
+        ? "Connect wallet to trade"
+        : phase === "building"
+          ? "Building"
+          : phase === "placed"
+            ? "Order placed"
+            : "Review order";
 
   // A closed market still renders the panel: the price is real history, the controls are not.
   if (status !== "open") {
@@ -213,6 +222,45 @@ export function TradePanel({
         />
         <span className="text-[11px] text-dim">USDC</span>
       </label>
+
+      {/* One tap sizing: the number a person actually says out loud. */}
+      <div className="mt-2 flex items-center gap-1.5">
+        {QUICK_STAKES.map((v) => {
+          const on = Math.abs(amount - v) < 0.005;
+          return (
+            <button
+              key={v}
+              type="button"
+              onClick={() => {
+                setStake(String(v));
+                setPhase("idle");
+                setBuilt(null);
+              }}
+              className={[
+                "rounded-lg border px-2.5 py-1 text-[12px] font-medium transition-colors",
+                on ? "border-ink text-ink" : "border-line text-muted active:bg-raised",
+              ].join(" ")}
+            >
+              ${v}
+            </button>
+          );
+        })}
+        <button
+          type="button"
+          disabled={balanceUsd === null || balanceUsd < MIN_STAKE}
+          onClick={() => {
+            setStake(Math.min(balanceUsd ?? 0, MAX_STAKE).toFixed(2));
+            setPhase("idle");
+            setBuilt(null);
+          }}
+          className="rounded-lg border border-line px-2.5 py-1 text-[12px] font-medium text-muted disabled:opacity-40"
+        >
+          Max
+        </button>
+        <span className="tnum ml-auto text-[11px] text-dim">
+          {balanceUsd === null ? "" : `Balance $${balanceUsd.toFixed(2)}`}
+        </span>
+      </div>
 
       <dl className="mt-3 space-y-1.5 px-1 text-[13px]">
         <div className="flex justify-between">
