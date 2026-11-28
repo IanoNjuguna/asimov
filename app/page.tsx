@@ -1,11 +1,15 @@
 import { CategoryChips } from "@/components/CategoryChips";
-import { FeaturedCard, pickFeatured } from "@/components/FeaturedCard";
+import { FeaturedCarousel } from "@/components/FeaturedCarousel";
+import { pickTop } from "@/components/FeaturedCard";
 import { FollowingCard } from "@/components/FollowingCard";
 import { MarketRow } from "@/components/MarketRow";
 import { CATEGORIES, getFeed, type CategoryKey } from "@/lib/jup";
 
 // Live prices: render with data instead of a shell, which is what this surface is for.
 export const instant = false;
+
+/** Cards in the featured carousel. Three fits a thumb's worth of swipes. */
+const FEATURED_COUNT = 3;
 
 export default async function Home({
   searchParams,
@@ -25,10 +29,11 @@ export default async function Home({
     failed = true;
   }
 
-  // One object above the list, the same rows below it: the featured event is not
-  // repeated immediately below itself.
-  const featured = pickFeatured(events);
-  const rest = featured ? events.filter((e) => e.eventId !== featured.eventId) : events;
+  // One carousel above the list, the same rows below it: whatever is featured is not
+  // repeated immediately beneath itself.
+  const featured = pickTop(events, FEATURED_COUNT);
+  const featuredIds = new Set(featured.map((e) => e.eventId));
+  const rest = events.filter((e) => !featuredIds.has(e.eventId));
 
   return (
     <div>
@@ -53,7 +58,7 @@ export default async function Home({
             <FollowingCard events={events} />
           </div>
           <div className="px-4">
-            {featured ? <FeaturedCard event={featured} /> : null}
+            <FeaturedCarousel events={featured} />
           </div>
           <ul>
             {rest.map((e, i) => (
