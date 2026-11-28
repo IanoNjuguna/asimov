@@ -9,20 +9,39 @@ import { getEvent, getMarket, getOrderbook } from "@/lib/jup";
 // Live prices: render with data instead of a shell, which is what this surface is for.
 export const instant = false;
 
+/**
+ * A depth ladder, not a highlight: a real header row, fixed row heights so the two
+ * sides share a baseline, and a 2px rule whose length is the size.
+ */
 function Depth({ levels }: { levels: [number, number][] }) {
   const top = [...levels].sort((a, b) => b[0] - a[0]).slice(0, 5);
   const max = Math.max(1, ...top.map((l) => l[1]));
-  if (!top.length) return <p className="text-[12px] text-dim">No resting orders.</p>;
+
   return (
-    <ul className="space-y-1">
-      {top.map(([price, size]) => (
-        <li key={price} className="relative flex items-center justify-between overflow-hidden rounded px-1.5 py-[3px]">
-          <span className="absolute inset-y-0 left-0 rounded bg-line/70" style={{ width: `${(size / max) * 100}%` }} />
-          <span className="tnum relative text-[12px] text-muted">{price}¢</span>
-          <span className="tnum relative text-[12px] text-ink">{Math.round(size).toLocaleString()}</span>
-        </li>
-      ))}
-    </ul>
+    <div>
+      <div className="flex items-baseline justify-between border-b border-line pb-1 text-[10px] uppercase tracking-[0.08em] text-dim">
+        <span>price</span>
+        <span>size</span>
+      </div>
+
+      {top.length ? (
+        <ul className="mt-1">
+          {top.map(([price, size]) => (
+            <li key={price} className="py-[3px]">
+              <div className="flex items-baseline justify-between">
+                <span className="tnum text-[12px] text-muted">{price}¢</span>
+                <span className="tnum text-[12px] text-ink">{Math.round(size).toLocaleString()}</span>
+              </div>
+              <div className="mt-1 h-[2px] w-full overflow-hidden rounded-full bg-line/40">
+                <div className="h-full rounded-full bg-line" style={{ width: `${(size / max) * 100}%` }} />
+              </div>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="py-2 text-[12px] text-dim">No resting orders.</p>
+      )}
+    </div>
   );
 }
 
@@ -101,18 +120,12 @@ export default async function MarketPage({ params }: { params: Promise<{ id: str
 
       {book ? (
         <section className="mx-4 mt-5 grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-line bg-line">
-          <div className="bg-surface p-3">
-            <div className="mb-2 flex items-baseline justify-between">
-              <h2 className="text-[11px] uppercase tracking-[0.14em] text-dim">Yes depth</h2>
-              <span className="text-[10px] uppercase tracking-[0.08em] text-dim">price·size</span>
-            </div>
+          <div className="bg-surface px-3 pb-3 pt-2.5">
+            <h2 className="mb-1.5 text-[11px] uppercase tracking-[0.14em] text-dim">Yes depth</h2>
             <Depth levels={book.yes} />
           </div>
-          <div className="bg-surface p-3">
-            <div className="mb-2 flex items-baseline justify-between">
-              <h2 className="text-[11px] uppercase tracking-[0.14em] text-dim">No depth</h2>
-              <span className="text-[10px] uppercase tracking-[0.08em] text-dim">price·size</span>
-            </div>
+          <div className="bg-surface px-3 pb-3 pt-2.5">
+            <h2 className="mb-1.5 text-[11px] uppercase tracking-[0.14em] text-dim">No depth</h2>
             <Depth levels={book.no} />
           </div>
         </section>
