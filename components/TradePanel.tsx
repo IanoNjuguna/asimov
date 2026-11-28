@@ -2,6 +2,7 @@
 
 import { useCallback, useMemo, useState } from "react";
 import { ConnectButton } from "@/components/ConnectButton";
+import { Tween } from "@/components/Tween";
 import { useBalances } from "@/lib/balance";
 import { cents, contractsFor, payoutFor, profitFor } from "@/lib/format";
 import { assertExecuted } from "@/lib/trade";
@@ -265,90 +266,153 @@ export function TradePanel({
       <dl className="mt-3 space-y-1.5 px-1 text-[13px]">
         <div className="flex justify-between">
           <dt className="text-muted">Contracts</dt>
-          <dd className="tnum text-ink">{contracts.toFixed(2)}</dd>
+          <dd className="tnum text-ink">
+            <Tween value={contracts} format={(n) => n.toFixed(2)} />
+          </dd>
         </div>
         <div className="flex justify-between">
           <dt className="text-muted">Payout if {side.toUpperCase()}</dt>
-          <dd className="tnum text-ink">${payout.toFixed(2)}</dd>
+          <dd className="tnum text-ink">
+            $<Tween value={payout} format={(n) => n.toFixed(2)} />
+          </dd>
         </div>
         <div className="flex justify-between">
           <dt className="text-muted">Profit</dt>
           <dd className={`tnum ${profit >= 0 ? "text-yes" : "text-no"}`}>
-            {profit >= 0 ? "+" : "-"}${Math.abs(profit).toFixed(2)}
+            {profit >= 0 ? "+" : "-"}$<Tween value={Math.abs(profit)} format={(n) => n.toFixed(2)} />
           </dd>
         </div>
       </dl>
 
-      {phase === "confirm" && built ? (
-        <div className="mt-3 rounded-xl border border-line bg-canvas p-3 text-[13px]">
-          <div className="flex justify-between">
-            <span className="text-muted">Order</span>
-            <span className="text-ink">
-              {side.toUpperCase()} · {built.contracts} contracts
-            </span>
-          </div>
-          <div className="mt-1.5 flex justify-between">
-            <span className="text-muted">Cost plus fees</span>
-            <span className="tnum text-ink">
-              {usd(built.costUsd)} + {usd(built.feeUsd)}
-            </span>
-          </div>
-          <div className="mt-1.5 flex justify-between">
-            <span className="text-muted">Network</span>
-            <span className="text-ink">Solana mainnet · USDC</span>
-          </div>
-          <div className="mt-3 flex gap-2">
-            <button
-              type="button"
-              onClick={() => {
-                setPhase("idle");
-                setBuilt(null);
-                setMessage(null);
-              }}
-              className="flex-1 rounded-lg border border-line py-2 text-[13px] text-muted"
-            >
-              Back
-            </button>
-            <button
-              type="button"
-              disabled={!TRADING_ENABLED}
-              onClick={() => void place()}
-              className="flex-[2] rounded-lg bg-ink py-2 text-[13px] font-semibold text-canvas disabled:opacity-40"
-            >
-              {TRADING_ENABLED ? "Sign and place" : "Trading disabled"}
-            </button>
-          </div>
-          {!TRADING_ENABLED ? (
-            <p className="mt-2 text-[11px] leading-relaxed text-dim">
-              The order was built and priced; signing is gated behind
-              NEXT_PUBLIC_ALLOW_TRADING=true because this deposit is real USDC on mainnet.
-            </p>
-          ) : null}
-        </div>
-      ) : (
-        <button
-          type="button"
-          disabled={!valid || phase === "building" || phase === "signing" || phase === "placed"}
-          onClick={() => {
-            if (!account) {
-              const first = wallets[0];
-              if (first) void connect(first).catch((e: unknown) => {
-                setMessage(e instanceof Error ? e.message : "Could not connect.");
-              });
-              return;
-            }
-            void review();
-          }}
-          className="mt-3 w-full rounded-xl bg-ink py-3 text-[15px] font-semibold text-canvas disabled:opacity-40"
-        >
-          {primaryLabel}
-        </button>
-      )}
+      <button
+        type="button"
+        disabled={!valid || phase === "building" || phase === "signing" || phase === "placed"}
+        onClick={() => {
+          if (!account) {
+            const first = wallets[0];
+            if (first) void connect(first).catch((e: unknown) => {
+              setMessage(e instanceof Error ? e.message : "Could not connect.");
+            });
+            return;
+          }
+          void review();
+        }}
+        className="mt-3 w-full rounded-xl bg-ink py-3 text-[15px] font-semibold text-canvas disabled:opacity-40"
+      >
+        {primaryLabel}
+      </button>
 
       <p className="mt-2 text-center text-[11px] leading-relaxed text-dim">
         {message ??
           "Fees apply on executed trades only. Positions pay $1 per contract at settlement."}
       </p>
+
+      {(phase === "confirm" || phase === "signing" || phase === "placed") && built ? (
+        <div className="fixed inset-0 z-50">
+          <button
+            type="button"
+            aria-label="Close"
+            onClick={() => {
+              if (phase === "signing") return;
+              setPhase("idle");
+              setBuilt(null);
+            }}
+            className="backdrop-in absolute inset-0 bg-canvas/70"
+          />
+          <div
+            role="dialog"
+            aria-modal="true"
+            className="sheet-in absolute inset-x-0 bottom-0 mx-auto max-w-[520px] rounded-t-2xl border-t border-line bg-surface px-4 pb-[calc(14px+env(safe-area-inset-bottom))] pt-3"
+          >
+            <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-line" />
+
+            {phase === "placed" ? (
+              <>
+                <p className="text-[17px] font-semibold text-ink">Order placed</p>
+                <p className="mt-1 text-[13px] leading-relaxed text-muted">{message}</p>
+                <div className="mt-3 space-y-1.5 border-t border-line pt-3 text-[13px]">
+                  <div className="flex justify-between">
+                    <span className="text-muted">{side.toUpperCase()} contracts</span>
+                    <span className="tnum text-ink">{built.contracts}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted">Paid</span>
+                    <span className="tnum text-ink">
+                      {usd(built.costUsd)} + {usd(built.feeUsd)} fee
+                    </span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPhase("idle");
+                    setBuilt(null);
+                  }}
+                  className="mt-4 w-full rounded-lg bg-ink py-2.5 text-[14px] font-semibold text-canvas"
+                >
+                  Done
+                </button>
+              </>
+            ) : (
+              <>
+                <p className="text-[17px] font-semibold text-ink">Review order</p>
+                <div className="mt-3 space-y-1.5 text-[13px]">
+                  <div className="flex justify-between">
+                    <span className="text-muted">Order</span>
+                    <span className="text-ink">
+                      {side.toUpperCase()} · {built.contracts} contracts
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted">Cost plus fees</span>
+                    <span className="tnum text-ink">
+                      {usd(built.costUsd)} + {usd(built.feeUsd)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted">Network</span>
+                    <span className="text-ink">Solana mainnet · USDC</span>
+                  </div>
+                </div>
+
+                <div className="mt-4 flex gap-2">
+                  <button
+                    type="button"
+                    disabled={phase === "signing"}
+                    onClick={() => {
+                      setPhase("idle");
+                      setBuilt(null);
+                      setMessage(null);
+                    }}
+                    className="flex-1 rounded-lg border border-line py-2.5 text-[13px] text-muted disabled:opacity-40"
+                  >
+                    Back
+                  </button>
+                  <button
+                    type="button"
+                    disabled={!TRADING_ENABLED || phase === "signing"}
+                    onClick={() => void place()}
+                    className="flex-[2] rounded-lg bg-ink py-2.5 text-[13px] font-semibold text-canvas disabled:opacity-40"
+                  >
+                    {phase === "signing"
+                      ? "Waiting for your wallet"
+                      : TRADING_ENABLED
+                        ? "Sign and place"
+                        : "Trading disabled"}
+                  </button>
+                </div>
+
+                {!TRADING_ENABLED ? (
+                  <p className="mt-2 text-[11px] leading-relaxed text-dim">
+                    The order was built and priced; signing is gated behind
+                    NEXT_PUBLIC_ALLOW_TRADING=true because this deposit is real USDC on mainnet.
+                  </p>
+                ) : null}
+              </>
+            )}
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }
